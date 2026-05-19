@@ -1,0 +1,42 @@
+load("@rules_jena//jena:defs.bzl", "jena_dataset", "jena_model", "jena_reasoner")
+
+package(default_visibility = ["//visibility:public"])
+
+jena_model(
+    name = "ontology",
+    srcs = ["ontology.ttl"],
+    in_format = "turtle",
+)
+
+jena_model(
+    name = "facts",
+    srcs = ["facts.ttl"],
+    in_format = "turtle",
+)
+
+# Dataset composing the TBox (ontology) + ABox (facts) — flat
+# combined model for the v0.2 reasoner pass.
+jena_dataset(
+    name = "world",
+    default_graph = ":ontology",
+    named_graphs = {
+        "http://example.org/g/facts": ":facts",
+    },
+)
+
+# RDFS reasoner — built-in profile, no rule_set needed.
+jena_reasoner(
+    name = "rdfs",
+    profile = "rdfs",
+)
+
+# v0.2 ships the providers + the rdf_reasoner_toolchain — the
+# user-facing rdf_reason rule that consumes them lands in
+# rules_rdf v0.2 (its v0.1 only ships sparql_query_test +
+# rdf_validate_test). Until then the smoke is "everything builds
+# and provides the right info" — the jena_reasoner_bin binary's
+# conformance test is what proves the toolchain is wired right.
+filegroup(
+    name = "smoke",
+    srcs = [":world", ":rdfs"],
+)

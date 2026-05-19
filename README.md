@@ -11,7 +11,43 @@ reasoner. Java tools built via `rules_java` + Maven (pinned through
 satisfying an abstract toolchain contract. The contract lives in
 `rules_rdf`; the binaries that fulfil it live here.
 
-## Status: v0.1.1
+## Status: v0.2.0
+
+What v0.2 adds on top of v0.1.1:
+
+- **Bazel-idiomatic Jena data primitives** (provider-only) —
+  `jena_model`, `jena_dataset`, `jena_rule_set`, `jena_reasoner`.
+  See [`docs/model.md`](docs/model.md),
+  [`docs/dataset.md`](docs/dataset.md),
+  [`docs/rules.md`](docs/rules.md),
+  [`docs/reasoner.md`](docs/reasoner.md). Every model + dataset
+  also emits `RdfDatasetInfo` so they're drop-in for rules_rdf
+  rules.
+- **Three new java_binaries** satisfying every remaining rules_rdf
+  toolchain type: `jena_shacl` (`rdf_validator`), `jena_riot`
+  (`rdf_serializer`), `jena_reasoner_bin` (`rdf_reasoner`). All
+  pass the rules_rdf conformance driver.
+- **Auto-registered toolchains** for all four — pulling in
+  rules_jena now provides a complete rules_rdf backend.
+- **End-to-end SHACL gate** smoke
+  (`examples/validate/people_conform`) runs through the chain
+  `jena_model` → `rdf_validate_test` → `jena_shacl` toolchain.
+
+Deferred to v0.3 (see [docs/ROADMAP.md](docs/ROADMAP.md)):
+
+- `jena_reason` build action (today's `rdf_reason` test rule
+  lives in rules_rdf v0.2's roadmap; until then, datasets +
+  reasoners are provider-ready but the build-action consumer
+  needs rules_rdf v0.2).
+- `jena_fuseki` HTTP-server dev runner.
+- Port `Loader.java` + deterministic `Writer.java` from the
+  Aion `kg/java/` corpus as a public `:jena_io` java_library.
+- Severity-aware SHACL filtering (today `--severity` is accepted
+  but coarsely interpreted).
+
+---
+
+## v0.1.1 status (still shipped):
 
 What ships:
 
@@ -104,7 +140,7 @@ common --registry=https://bcr.bazel.build/
 `MODULE.bazel`:
 
 ```python
-bazel_dep(name = "rules_jena", version = "0.1.1")
+bazel_dep(name = "rules_jena", version = "0.2.0")
 ```
 
 `rules_rdf`, `rules_java`, and `rules_jvm_external` (the Maven

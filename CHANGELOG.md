@@ -4,6 +4,42 @@ All notable changes to rules_jena. The format is loosely
 [Keep a Changelog](https://keepachangelog.com/) — version headers
 mirror the published bazel-registry entries.
 
+## 0.2.0 — Bazel-idiomatic Jena API + full rules_rdf backend
+
+Four provider-only data primitives:
+
+- `jena_model(name, srcs, in_format, base_iri)` — single Jena
+  Model. Emits both `JenaModelInfo` and `RdfDatasetInfo` so it's
+  drop-in for rules_rdf rules.
+- `jena_dataset(name, default_graph, named_graphs)` — composed of
+  one or more `jena_model` labels, addressable by graph IRI. Also
+  emits `RdfDatasetInfo` (flattened union).
+- `jena_rule_set(name, rules)` — collection of Jena `.rule` files
+  for the RETE reasoner.
+- `jena_reasoner(name, profile|rule_set)` — built-in profile
+  (`rdfs` / `owl-rl` / `owl-mini` / `owl-micro`) or `custom` with
+  a rule set.
+
+Three new java_binaries, each satisfying the corresponding
+rules_rdf plugin contract:
+
+- `//jena/shacl:jena_shacl` → `rdf_validator_toolchain_type`.
+- `//jena/riot:jena_riot` → `rdf_serializer_toolchain_type`.
+- `//jena/reasoner:jena_reasoner_bin` → `rdf_reasoner_toolchain_type`.
+
+All four toolchains (sparql + shacl + riot + reasoner) auto-register
+in `MODULE.bazel` — pulling in rules_jena gives consumers a complete
+rules_rdf backend with zero configuration.
+
+Conformance tests run rules_rdf's contract driver against every
+binary; all four pass. End-to-end smoke
+`examples/validate/people_conform` chains `jena_model` →
+`rdf_validate_test` → registered `jena_shacl` toolchain.
+
+Stardoc reference docs for every public `.bzl`. `bazel test //...`
+runs 12/12 (6 stardoc diff_tests + 4 conformance + 1 sparql smoke
++ 1 shacl smoke).
+
 ## 0.1.1 — public JENA_DEPS + stardoc reference docs
 
 - Public `JENA_DEPS` constant in `//jena:defs.bzl` — the five Maven

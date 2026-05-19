@@ -1,0 +1,17 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("//jena:defs.bzl", "JENA_DEPS")
+
+package(default_visibility = ["//visibility:public"])
+
+# Concrete implementation of rules_rdf's rdf_validator toolchain
+# contract — Jena's SHACL implementation. Reads dataset from stdin,
+# shapes via --shapes=PATH, emits sh:ValidationReport (Turtle) to
+# stdout.
+java_binary(
+    name = "jena_shacl",
+    srcs = ["JenaShacl.java"],
+    main_class = "fastverk.rules_jena.shacl.JenaShacl",
+    deps = JENA_DEPS + [
+        "@jena_maven//:org_apache_jena_jena_shacl",
+    ],
+)

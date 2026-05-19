@@ -1,0 +1,10 @@
+PREFIX ex: <http://example.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+# Zero-row gate INVERTED: this query asks for everything that's
+# NOT-an-animal-but-should-be. We expect zero rows AFTER inference
+# closes Dog ⊆ Mammal ⊆ Animal and types ex:rex as ex:Animal.
+SELECT ?s WHERE {
+    ?s a ex:Dog .
+    FILTER NOT EXISTS { ?s a ex:Animal }
+}

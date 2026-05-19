@@ -1,22 +1,58 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_rdf//rdf:contract_test.bzl", "rdf_plugin_contract_test")
-load("@rules_rdf//rdf:toolchains.bzl", "sparql_engine_toolchain")
+load(
+    "@rules_rdf//rdf:toolchains.bzl",
+    "rdf_reasoner_toolchain",
+    "rdf_serializer_toolchain",
+    "rdf_validator_toolchain",
+    "sparql_engine_toolchain",
+)
 
 package(default_visibility = ["//visibility:public"])
 
 # Stardoc / bzl_library plumbing for the public Starlark surface.
-# `JENA_DEPS` lives in `defs.bzl`; the docs/ build resolves this
-# bzl_library to feed stardoc.
 bzl_library(
     name = "defs",
     srcs = ["defs.bzl"],
+    deps = [
+        ":providers",
+        ":model",
+        ":dataset",
+        ":rules",
+        ":reasoner",
+    ],
 )
 
-# Wrap the Jena ARQ-backed sparql_engine binary as a
-# rules_rdf-compatible toolchain. Consumers register this
-# toolchain in their MODULE.bazel:
-#
-#   register_toolchains("@rules_jena//jena:jena_sparql_toolchain_def")
+bzl_library(name = "providers", srcs = ["providers.bzl"])
+
+bzl_library(
+    name = "model",
+    srcs = ["model.bzl"],
+    deps = [
+        ":providers",
+        "@rules_rdf//rdf:dataset",
+        "@rules_rdf//rdf:providers",
+    ],
+)
+
+bzl_library(
+    name = "dataset",
+    srcs = ["dataset.bzl"],
+    deps = [
+        ":providers",
+        "@rules_rdf//rdf:providers",
+    ],
+)
+
+bzl_library(name = "rules", srcs = ["rules.bzl"], deps = [":providers"])
+
+bzl_library(name = "reasoner", srcs = ["reasoner.bzl"], deps = [":providers"])
+
+# ---- Toolchain registrations ------------------------------------------------
+# One per rules_rdf toolchain type. Consumers pulling in rules_jena
+# get all four for free via the `register_toolchains(...)` call in
+# MODULE.bazel.
+
 sparql_engine_toolchain(
     name = "jena_sparql_toolchain",
     binary = "//jena/sparql:jena_sparql",
@@ -28,12 +64,63 @@ toolchain(
     toolchain_type = "@rules_rdf//rdf:sparql_engine_toolchain_type",
 )
 
-# Conformance test: rules_rdf's driver runs the four contract
-# scenarios (valid_minimal, malformed_input, unknown_flag,
-# determinism) against jena_sparql. Failing this means the binary
-# diverged from the contract.
+rdf_validator_toolchain(
+    name = "jena_shacl_toolchain",
+    binary = "//jena/shacl:jena_shacl",
+)
+
+toolchain(
+    name = "jena_shacl_toolchain_def",
+    toolchain = ":jena_shacl_toolchain",
+    toolchain_type = "@rules_rdf//rdf:rdf_validator_toolchain_type",
+)
+
+rdf_serializer_toolchain(
+    name = "jena_riot_toolchain",
+    binary = "//jena/riot:jena_riot",
+)
+
+toolchain(
+    name = "jena_riot_toolchain_def",
+    toolchain = ":jena_riot_toolchain",
+    toolchain_type = "@rules_rdf//rdf:rdf_serializer_toolchain_type",
+)
+
+rdf_reasoner_toolchain(
+    name = "jena_reasoner_toolchain",
+    binary = "//jena/reasoner:jena_reasoner_bin",
+)
+
+toolchain(
+    name = "jena_reasoner_toolchain_def",
+    toolchain = ":jena_reasoner_toolchain",
+    toolchain_type = "@rules_rdf//rdf:rdf_reasoner_toolchain_type",
+)
+
+# ---- Conformance tests ------------------------------------------------------
+# Run rules_rdf's contract driver against each binary. Failing one
+# means the corresponding binary diverged from the contract.
+
 rdf_plugin_contract_test(
     name = "jena_sparql_conforms",
     plugin = "//jena/sparql:jena_sparql",
     toolchain_type = "sparql_engine",
+)
+
+rdf_plugin_contract_test(
+    name = "jena_shacl_conforms",
+    plugin = "//jena/shacl:jena_shacl",
+    toolchain_type = "rdf_validator",
+)
+
+rdf_plugin_contract_test(
+    name = "jena_riot_conforms",
+    plugin = "//jena/riot:jena_riot",
+    toolchain_type = "rdf_serializer",
+)
+
+rdf_plugin_contract_test(
+    name = "jena_reasoner_conforms",
+    plugin = "//jena/reasoner:jena_reasoner_bin",
+    toolchain_type = "rdf_reasoner",
 )

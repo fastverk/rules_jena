@@ -1,0 +1,21 @@
+load("@rules_jena//jena:defs.bzl", "jena_model")
+load("@rules_rdf//validate:defs.bzl", "rdf_validate_test")
+
+package(default_visibility = ["//visibility:public"])
+
+# Jena-aware data primitive (also emits RdfDatasetInfo so it flows
+# straight into rules_rdf's rdf_validate_test).
+jena_model(
+    name = "people",
+    srcs = ["data.ttl"],
+    in_format = "turtle",
+)
+
+# End-to-end SHACL gate via the auto-registered jena_shacl
+# toolchain. Every foaf:Person must have a foaf:name; both alice
+# and bob conform.
+rdf_validate_test(
+    name = "people_conform",
+    dataset = ":people",
+    shapes = "shapes.ttl",
+)

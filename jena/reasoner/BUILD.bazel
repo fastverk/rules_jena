@@ -1,0 +1,15 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("//jena:defs.bzl", "JENA_DEPS")
+
+package(default_visibility = ["//visibility:public"])
+
+# Concrete implementation of rules_rdf's rdf_reasoner toolchain
+# contract — Jena's reasoner registry (RDFS, OWL micro/mini/RL) +
+# GenericRuleReasoner for custom rule sets. Emits derived triples
+# (Turtle) on stdout.
+java_binary(
+    name = "jena_reasoner_bin",
+    srcs = ["JenaReasonerBin.java"],
+    main_class = "fastverk.rules_jena.reasoner.JenaReasonerBin",
+    deps = JENA_DEPS,
+)

@@ -1,0 +1,14 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("//jena:defs.bzl", "JENA_DEPS")
+
+package(default_visibility = ["//visibility:public"])
+
+# Concrete implementation of rules_rdf's rdf_serializer toolchain
+# contract — Jena's RIOT (RDF I/O technology). Converts RDF
+# between turtle / ntriples / nquads / trig / jsonld / rdfxml.
+java_binary(
+    name = "jena_riot",
+    srcs = ["JenaRiot.java"],
+    main_class = "fastverk.rules_jena.riot.JenaRiot",
+    deps = JENA_DEPS,
+)

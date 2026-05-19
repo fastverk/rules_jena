@@ -3,7 +3,7 @@
 # reasoner. Java tools built via rules_java + Maven.
 module(
     name = "rules_jena",
-    version = "0.1.1",
+    version = "0.2.0",
 )
 
 bazel_dep(name = "platforms", version = "1.0.0")
@@ -37,11 +37,15 @@ maven.install(
 )
 use_repo(maven, "jena_maven")
 
-# Register the Jena sparql_engine toolchain. Consumers of rules_jena
-# don't need to do this themselves — pulling rules_jena into their
-# MODULE.bazel makes the toolchain available for any rule that
-# resolves sparql_engine_toolchain_type.
-register_toolchains("//jena:jena_sparql_toolchain_def")
+# Register all four Jena-backed toolchains so consumers of
+# rules_jena get a working implementation of every rules_rdf
+# toolchain type without further wiring.
+register_toolchains(
+    "//jena:jena_sparql_toolchain_def",
+    "//jena:jena_shacl_toolchain_def",
+    "//jena:jena_riot_toolchain_def",
+    "//jena:jena_reasoner_toolchain_def",
+)
 
 # Dev-only: docs/BUILD.bazel + examples.
 bazel_dep(name = "rules_shell", version = "0.6.1", dev_dependency = True)
