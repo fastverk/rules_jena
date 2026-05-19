@@ -4,6 +4,19 @@ All notable changes to rules_jena. The format is loosely
 [Keep a Changelog](https://keepachangelog.com/) — version headers
 mirror the published bazel-registry entries.
 
+## 0.2.1 — binary RDF formats + rules_rdf 0.2 dep bump
+
+- All four Jena toolchain binaries (`jena_sparql`, `jena_shacl`,
+  `jena_riot`, `jena_reasoner_bin`) now accept `rdfthrift` and
+  `rdfprotobuf` as `--in-format` values. `jena_riot` additionally
+  emits both formats via `--out-format` (`RDFFormat.RDF_THRIFT` /
+  `RDFFormat.RDF_PROTO`). Useful as cached intermediate forms in
+  long pipelines — significantly faster to parse than Turtle for
+  large datasets.
+- `rules_rdf` dep bumped to `0.2.0` to pick up the same
+  `RDF_FORMATS` vocabulary on the abstract side + the new
+  `rdf_reason` / `rdf_transform` build-action rules.
+
 ## 0.2.0 — Bazel-idiomatic Jena API + full rules_rdf backend
 
 Four provider-only data primitives:

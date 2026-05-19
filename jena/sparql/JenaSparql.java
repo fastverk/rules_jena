@@ -61,13 +61,15 @@ public final class JenaSparql {
 
     /** {@code --in-format} → Jena {@link Lang}. Matches the rules_rdf
      *  vocabulary. */
-    private static final Map<String, Lang> IN_FORMATS = Map.of(
-            "turtle", Lang.TURTLE,
-            "ntriples", Lang.NTRIPLES,
-            "nquads", Lang.NQUADS,
-            "trig", Lang.TRIG,
-            "jsonld", Lang.JSONLD,
-            "rdfxml", Lang.RDFXML);
+    private static final Map<String, Lang> IN_FORMATS = Map.ofEntries(
+            Map.entry("turtle", Lang.TURTLE),
+            Map.entry("ntriples", Lang.NTRIPLES),
+            Map.entry("nquads", Lang.NQUADS),
+            Map.entry("trig", Lang.TRIG),
+            Map.entry("jsonld", Lang.JSONLD),
+            Map.entry("rdfxml", Lang.RDFXML),
+            Map.entry("rdfthrift", Lang.RDFTHRIFT),
+            Map.entry("rdfprotobuf", Lang.RDFPROTO));
 
     /** Output formats by argv value. Used for SELECT/ASK; CONSTRUCT
      *  and DESCRIBE always emit Turtle. */

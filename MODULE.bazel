@@ -3,7 +3,7 @@
 # reasoner. Java tools built via rules_java + Maven.
 module(
     name = "rules_jena",
-    version = "0.2.0",
+    version = "0.2.1",
 )
 
 bazel_dep(name = "platforms", version = "1.0.0")
@@ -13,7 +13,7 @@ bazel_dep(name = "bazel_skylib", version = "1.8.2")
 # the toolchain types defined by rules_rdf. The abstract plugin
 # contract (stdin/argv/stdout shape, conformance test rule) lives
 # upstream; the Jena java_binary targets that satisfy it live here.
-bazel_dep(name = "rules_rdf", version = "0.1.0")
+bazel_dep(name = "rules_rdf", version = "0.2.0")
 
 bazel_dep(name = "rules_java", version = "8.6.1")
 

@@ -37,21 +37,27 @@ public final class JenaRiot {
     private static final Set<String> KNOWN_FLAGS = Set.of(
             "--rule-name", "--in-format", "--out-format");
 
-    private static final Map<String, Lang> IN_FORMATS = Map.of(
-            "turtle", Lang.TURTLE,
-            "ntriples", Lang.NTRIPLES,
-            "nquads", Lang.NQUADS,
-            "trig", Lang.TRIG,
-            "jsonld", Lang.JSONLD,
-            "rdfxml", Lang.RDFXML);
+    private static final Map<String, Lang> IN_FORMATS = Map.ofEntries(
+            Map.entry("turtle", Lang.TURTLE),
+            Map.entry("ntriples", Lang.NTRIPLES),
+            Map.entry("nquads", Lang.NQUADS),
+            Map.entry("trig", Lang.TRIG),
+            Map.entry("jsonld", Lang.JSONLD),
+            Map.entry("rdfxml", Lang.RDFXML),
+            // Apache Jena binary RDF — fast to parse, compact. Useful
+            // as cached intermediate forms in long pipelines.
+            Map.entry("rdfthrift", Lang.RDFTHRIFT),
+            Map.entry("rdfprotobuf", Lang.RDFPROTO));
 
-    private static final Map<String, RDFFormat> OUT_FORMATS = Map.of(
-            "turtle", RDFFormat.TURTLE_PRETTY,
-            "ntriples", RDFFormat.NTRIPLES,
-            "nquads", RDFFormat.NQUADS,
-            "trig", RDFFormat.TRIG_PRETTY,
-            "jsonld", RDFFormat.JSONLD_PRETTY,
-            "rdfxml", RDFFormat.RDFXML_PRETTY);
+    private static final Map<String, RDFFormat> OUT_FORMATS = Map.ofEntries(
+            Map.entry("turtle", RDFFormat.TURTLE_PRETTY),
+            Map.entry("ntriples", RDFFormat.NTRIPLES),
+            Map.entry("nquads", RDFFormat.NQUADS),
+            Map.entry("trig", RDFFormat.TRIG_PRETTY),
+            Map.entry("jsonld", RDFFormat.JSONLD_PRETTY),
+            Map.entry("rdfxml", RDFFormat.RDFXML_PRETTY),
+            Map.entry("rdfthrift", RDFFormat.RDF_THRIFT),
+            Map.entry("rdfprotobuf", RDFFormat.RDF_PROTO));
 
     public static void main(String[] argv) {
         try {
