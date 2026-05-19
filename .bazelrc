@@ -5,3 +5,9 @@ common --registry=https://bcr.bazel.build/
 
 test --test_output=errors
 test --test_summary=terse
+
+# Pin to a remote-fetched JDK so builds don't depend on host
+# JAVA_HOME. Matches the production kg/java/ setup that ships in
+# Aion. Bump in lockstep with the jena_maven artifact set.
+build --java_runtime_version=remotejdk_21
+build --tool_java_runtime_version=remotejdk_21

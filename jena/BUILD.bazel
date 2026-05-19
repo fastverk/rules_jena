@@ -1,0 +1,30 @@
+load("@rules_rdf//rdf:contract_test.bzl", "rdf_plugin_contract_test")
+load("@rules_rdf//rdf:toolchains.bzl", "sparql_engine_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+# Wrap the Jena ARQ-backed sparql_engine binary as a
+# rules_rdf-compatible toolchain. Consumers register this
+# toolchain in their MODULE.bazel:
+#
+#   register_toolchains("@rules_jena//jena:jena_sparql_toolchain_def")
+sparql_engine_toolchain(
+    name = "jena_sparql_toolchain",
+    binary = "//jena/sparql:jena_sparql",
+)
+
+toolchain(
+    name = "jena_sparql_toolchain_def",
+    toolchain = ":jena_sparql_toolchain",
+    toolchain_type = "@rules_rdf//rdf:sparql_engine_toolchain_type",
+)
+
+# Conformance test: rules_rdf's driver runs the four contract
+# scenarios (valid_minimal, malformed_input, unknown_flag,
+# determinism) against jena_sparql. Failing this means the binary
+# diverged from the contract.
+rdf_plugin_contract_test(
+    name = "jena_sparql_conforms",
+    plugin = "//jena/sparql:jena_sparql",
+    toolchain_type = "sparql_engine",
+)

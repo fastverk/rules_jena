@@ -1,0 +1,8 @@
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+# Zero-row gate: every Person we know about must have a foaf:name.
+# Result rows are violations.
+SELECT ?person WHERE {
+    ?person a foaf:Person .
+    FILTER NOT EXISTS { ?person foaf:name ?n }
+}

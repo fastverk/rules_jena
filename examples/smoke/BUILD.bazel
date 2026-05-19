@@ -1,0 +1,19 @@
+load("@rules_rdf//rdf:dataset.bzl", "rdf_dataset")
+load("@rules_rdf//sparql:defs.bzl", "sparql_query_test")
+
+package(default_visibility = ["//visibility:public"])
+
+rdf_dataset(
+    name = "people",
+    srcs = ["sample.ttl"],
+    in_format = "turtle",
+)
+
+# End-to-end: rdf_dataset → sparql_query_test → Jena ARQ engine
+# via the registered toolchain → exits 0 because the query returns
+# zero rows (both alice and bob have foaf:name).
+sparql_query_test(
+    name = "no_orphans_gate",
+    dataset = ":people",
+    query = "no_orphans.rq",
+)

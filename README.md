@@ -11,11 +11,40 @@ reasoner. Java tools built via `rules_java` + Maven (pinned through
 satisfying an abstract toolchain contract. The contract lives in
 `rules_rdf`; the binaries that fulfil it live here.
 
-## Status: v0.0.1 — scaffold
+## Status: v0.1.0
 
-No public surface yet. Toolchain implementations land in v0.1. See
-[`CHANGELOG.md`](CHANGELOG.md) for what has shipped and
-[`docs/ROADMAP.md`](docs/ROADMAP.md) for what is planned.
+What ships:
+
+- **`@jena_maven`** — Apache Jena 5.2.0 + slf4j-simple 2.0.16,
+  pinned via `rules_jvm_external` with a committed
+  `maven_install.json`. Same artifact set as the production
+  `kg/java/` `JENA_DEPS` constant.
+- **`//jena/sparql:jena_sparql`** — `java_binary` implementing
+  `rules_rdf`'s `sparql_engine_toolchain_type` plugin contract.
+  Reads RDF from stdin, executes a SPARQL query from
+  `--query=<path>`, emits results (TSV / CSV / JSON / SRX for
+  SELECT, Turtle for CONSTRUCT/DESCRIBE) to stdout. SELECT + ASK
+  + CONSTRUCT + DESCRIBE all supported. `--fail-on-nonempty`
+  drives the zero-row gate idiom.
+- **`//jena:jena_sparql_toolchain_def`** — toolchain registration.
+  Auto-registered in `MODULE.bazel` so consumers don't have to.
+- **Conformance test** (`//jena:jena_sparql_conforms`) — runs
+  `rules_rdf`'s `rdf_plugin_contract_test` driver against the
+  binary. All four scenarios pass: `valid_minimal`,
+  `malformed_input`, `unknown_flag`, `determinism`.
+- **End-to-end smoke** (`examples/smoke/`) — a FOAF dataset + a
+  SPARQL zero-row gate, resolved through the registered
+  toolchain. `bazel test //examples/smoke:all` passes.
+
+Deferred to v0.2 (see [docs/ROADMAP.md](docs/ROADMAP.md)):
+
+- SHACL validator (`jena_shacl`) → `rdf_validator_toolchain_type`.
+- RIOT format converter (`jena_riot`) →
+  `rdf_serializer_toolchain_type`.
+- OWL reasoner (`jena_reasoner`) → `rdf_reasoner_toolchain_type`.
+- Port `Loader.java` + `Writer.java` from `~/Documents/rfcs/kg/java/`
+  as public `//jena:loader` + `//jena:writer` `java_library`
+  targets.
 
 ## Planned implementations
 
@@ -69,7 +98,7 @@ common --registry=https://bcr.bazel.build/
 `MODULE.bazel`:
 
 ```python
-bazel_dep(name = "rules_jena", version = "0.0.1")
+bazel_dep(name = "rules_jena", version = "0.1.0")
 ```
 
 `rules_rdf`, `rules_java`, and `rules_jvm_external` (the Maven

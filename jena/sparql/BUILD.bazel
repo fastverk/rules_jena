@@ -1,0 +1,24 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+# Same Maven set the production kg/java/BUILD.bazel pulls in as
+# `JENA_DEPS`. Keep them aligned — bumping Jena across both repos
+# in lockstep is the explicit upgrade contract.
+JENA_DEPS = [
+    "@jena_maven//:org_apache_jena_jena_arq",
+    "@jena_maven//:org_apache_jena_jena_core",
+    "@jena_maven//:org_apache_jena_jena_base",
+    "@jena_maven//:org_apache_jena_jena_iri",
+    "@jena_maven//:org_slf4j_slf4j_simple",
+]
+
+# Concrete implementation of rules_rdf's sparql_engine toolchain
+# contract. Consumers register it via a `sparql_engine_toolchain` +
+# `toolchain` pair in their MODULE.bazel (see README).
+java_binary(
+    name = "jena_sparql",
+    srcs = ["JenaSparql.java"],
+    main_class = "fastverk.rules_jena.sparql.JenaSparql",
+    deps = JENA_DEPS,
+)
