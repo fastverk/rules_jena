@@ -1,7 +1,16 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_rdf//rdf:contract_test.bzl", "rdf_plugin_contract_test")
 load("@rules_rdf//rdf:toolchains.bzl", "sparql_engine_toolchain")
 
 package(default_visibility = ["//visibility:public"])
+
+# Stardoc / bzl_library plumbing for the public Starlark surface.
+# `JENA_DEPS` lives in `defs.bzl`; the docs/ build resolves this
+# bzl_library to feed stardoc.
+bzl_library(
+    name = "defs",
+    srcs = ["defs.bzl"],
+)
 
 # Wrap the Jena ARQ-backed sparql_engine binary as a
 # rules_rdf-compatible toolchain. Consumers register this

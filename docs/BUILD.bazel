@@ -1,0 +1,35 @@
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_jsonschema//util:write_source_files.bzl", "write_source_files")
+load("@stardoc//stardoc:stardoc.bzl", "stardoc")
+
+package(default_visibility = ["//visibility:public"])
+
+# Reference docs are stardoc-generated AND committed to source. The
+# diff_test gates assert the committed file matches what stardoc
+# produces from the .bzl docstrings; CI fails if someone changes a
+# rule without running `bazel run //docs:update`.
+#
+# v0.1's public Starlark surface is a single constant — `JENA_DEPS` —
+# so there's exactly one stardoc invocation. v0.2 grows this list as
+# new toolchain binaries (`jena_shacl`, `jena_riot`, `jena_reasoner`)
+# land alongside their public macros / rules.
+stardoc(
+    name = "defs_doc",
+    out = "defs.md.generated",
+    input = "//jena:defs.bzl",
+    deps = ["//jena:defs"],
+)
+
+diff_test(
+    name = "defs_doc_up_to_date",
+    file1 = "defs.md",
+    file2 = ":defs_doc",
+)
+
+# `bazel run //docs:update` writes every stardoc output back to source.
+write_source_files(
+    name = "update",
+    files = {
+        "defs.md": ":defs_doc",
+    },
+)

@@ -4,6 +4,18 @@ All notable changes to rules_jena. The format is loosely
 [Keep a Changelog](https://keepachangelog.com/) — version headers
 mirror the published bazel-registry entries.
 
+## 0.1.1 — public JENA_DEPS + stardoc reference docs
+
+- Public `JENA_DEPS` constant in `//jena:defs.bzl` — the five Maven
+  labels every Jena-using `java_binary` depends on, now re-exportable
+  by downstream consumers (`load("@rules_jena//jena:defs.bzl",
+  "JENA_DEPS")`). Replaces the inlined list previously hard-coded in
+  `jena/sparql/BUILD.bazel`.
+- Stardoc-generated reference in `docs/` — `bazel run //docs:update`
+  regenerates `docs/defs.md` from the `.bzl` docstrings; a
+  `diff_test` gate keeps the committed markdown in sync with the
+  source.
+
 ## 0.1.0 — first concrete implementation: `jena_sparql`
 
 - Maven dep pinning via `rules_jvm_external`: Apache Jena 5.2.0

@@ -11,7 +11,7 @@ reasoner. Java tools built via `rules_java` + Maven (pinned through
 satisfying an abstract toolchain contract. The contract lives in
 `rules_rdf`; the binaries that fulfil it live here.
 
-## Status: v0.1.0
+## Status: v0.1.1
 
 What ships:
 
@@ -19,6 +19,12 @@ What ships:
   pinned via `rules_jvm_external` with a committed
   `maven_install.json`. Same artifact set as the production
   `kg/java/` `JENA_DEPS` constant.
+- **`JENA_DEPS`** (from `@rules_jena//jena:defs.bzl`) — the five
+  Maven labels every Jena-using `java_binary` needs, exposed as a
+  publicly re-exportable Starlark constant. Downstream consumers
+  `load("@rules_jena//jena:defs.bzl", "JENA_DEPS")` and spread it
+  into their `deps` attr instead of hand-rolling their own list.
+  Stardoc reference in [`docs/defs.md`](docs/defs.md).
 - **`//jena/sparql:jena_sparql`** — `java_binary` implementing
   `rules_rdf`'s `sparql_engine_toolchain_type` plugin contract.
   Reads RDF from stdin, executes a SPARQL query from
@@ -98,7 +104,7 @@ common --registry=https://bcr.bazel.build/
 `MODULE.bazel`:
 
 ```python
-bazel_dep(name = "rules_jena", version = "0.1.0")
+bazel_dep(name = "rules_jena", version = "0.1.1")
 ```
 
 `rules_rdf`, `rules_java`, and `rules_jvm_external` (the Maven
