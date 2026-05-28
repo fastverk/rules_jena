@@ -1,0 +1,23 @@
+load("@rules_java//java:defs.bzl", "java_test")
+load("@rules_jena//jena:defs.bzl", "jena_dataset_library")
+
+# The fixture graph, bundled into a java_library with a generated
+# example.dataset.Fixture.load() accessor.
+jena_dataset_library(
+    name = "fixture",
+    srcs = ["fixture.ttl"],
+    package = "example.dataset",
+    classname = "Fixture",
+)
+
+# Loads it from the classpath and checks the triple count.
+java_test(
+    name = "load_test",
+    srcs = ["LoadTest.java"],
+    main_class = "example.dataset.LoadTest",
+    use_testrunner = False,
+    deps = [
+        ":fixture",
+        "@jena_maven//:org_apache_jena_jena_core",
+    ],
+)

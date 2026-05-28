@@ -36,6 +36,7 @@ load(
 )
 load(":reasoner.bzl", _jena_reasoner = "jena_reasoner")
 load(":rules.bzl", _jena_rule_set = "jena_rule_set")
+load(":dataset_library.bzl", _jena_dataset_library = "jena_dataset_library")
 
 # Maven labels every Jena-using java_binary depends on. Five
 # entries — `jena-arq`, `-core`, `-base`, `-iri`, plus
@@ -55,6 +56,7 @@ jena_model = _jena_model
 jena_dataset = _jena_dataset
 jena_rule_set = _jena_rule_set
 jena_reasoner = _jena_reasoner
+jena_dataset_library = _jena_dataset_library
 
 # Re-exported providers.
 JenaModelInfo = _JenaModelInfo

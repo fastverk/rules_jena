@@ -1,0 +1,4 @@
+@prefix ex: <http://example.org/> .
+
+ex:a ex:knows ex:b .
+ex:b ex:knows ex:c .
