@@ -1,6 +1,8 @@
 package fastverk.rules_jena.riot;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,9 +16,18 @@ import org.apache.jena.riot.RiotException;
 /**
  * Jena-backed implementation of the rules_rdf
  * {@code rdf_serializer_toolchain_type} plugin contract. Reads RDF
- * from stdin in {@code --in-format=FORMAT}, re-emits in
+ * in {@code --in-format=FORMAT} and re-emits in
  * {@code --out-format=FORMAT} to stdout. Backed by Jena's RIOT
  * (RDF I/O technology).
+ *
+ * <p>Input is either stdin (the single-stream contract default) or
+ * one-or-more repeated {@code --input-file=PATH} flags. The
+ * multi-file form is the blank-node-safe dataset merge: each file is
+ * parsed <em>independently</em> into the shared model, so Jena scopes
+ * (relabels) each file's blank nodes per-read and distinct {@code _:bN}
+ * labels across files never collide. This is the correct RDF union —
+ * unlike concatenating the files' bytes and parsing as one document,
+ * which merges same-labelled blank nodes from different files.
  *
  * <p>Determinism: Jena's TURTLE_PRETTY output is content-stable for
  * a given input graph (sorts triples; assigns blank-node labels by
@@ -35,7 +46,7 @@ import org.apache.jena.riot.RiotException;
 public final class JenaRiot {
 
     private static final Set<String> KNOWN_FLAGS = Set.of(
-            "--rule-name", "--in-format", "--out-format");
+            "--rule-name", "--in-format", "--out-format", "--input-file");
 
     private static final Map<String, Lang> IN_FORMATS = Map.ofEntries(
             Map.entry("turtle", Lang.TURTLE),
@@ -74,10 +85,23 @@ public final class JenaRiot {
     static int run(String[] argv) throws UsageError, InputError {
         Args args = parseArgs(argv);
         Model model = ModelFactory.createDefaultModel();
-        try {
-            RDFDataMgr.read(model, System.in, null, args.inFormat);
-        } catch (RiotException e) {
-            throw new InputError("failed to parse stdin as " + args.inFormat.getLabel() + ": " + e.getMessage());
+        if (args.inputFiles.isEmpty()) {
+            try {
+                RDFDataMgr.read(model, System.in, null, args.inFormat);
+            } catch (RiotException e) {
+                throw new InputError("failed to parse stdin as " + args.inFormat.getLabel() + ": " + e.getMessage());
+            }
+        } else {
+            // Multi-file merge: parse each file independently into the
+            // shared model. Jena scopes blank nodes per read, so this is
+            // a correct RDF union (no cross-file _:bN collision).
+            for (String path : args.inputFiles) {
+                try {
+                    RDFDataMgr.read(model, path, args.inFormat);
+                } catch (RiotException e) {
+                    throw new InputError("failed to parse " + path + " as " + args.inFormat.getLabel() + ": " + e.getMessage());
+                }
+            }
         }
         RDFDataMgr.write(System.out, model, args.outFormat);
         return 0;
@@ -87,6 +111,7 @@ public final class JenaRiot {
         String ruleName = "";
         Lang inFormat = Lang.TURTLE;
         RDFFormat outFormat = RDFFormat.TURTLE_PRETTY;
+        final List<String> inputFiles = new ArrayList<>();
     }
 
     static Args parseArgs(String[] argv) throws UsageError {
@@ -101,7 +126,12 @@ public final class JenaRiot {
             if (!KNOWN_FLAGS.contains(key)) {
                 throw new UsageError("unknown flag: " + key);
             }
-            seen.put(key, raw.substring(eq + 1));
+            // --input-file is repeatable; everything else is single-valued.
+            if (key.equals("--input-file")) {
+                args.inputFiles.add(raw.substring(eq + 1));
+            } else {
+                seen.put(key, raw.substring(eq + 1));
+            }
         }
         if (seen.containsKey("--rule-name")) args.ruleName = seen.get("--rule-name");
         if (seen.containsKey("--in-format")) {
