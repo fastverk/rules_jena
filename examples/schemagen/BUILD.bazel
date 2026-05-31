@@ -1,0 +1,37 @@
+load("@rules_java//java:defs.bzl", "java_test")
+load("@rules_jena//jena:defs.bzl", "jena_model", "jena_schemagen")
+
+# A toy ontology to exercise the schemagen rule end-to-end.
+jena_model(
+    name = "fixture_ttl",
+    srcs = ["fixture.ttl"],
+    in_format = "turtle",
+)
+
+# Generate example.schemagen.Spec from the fixture — gains static
+# Resource / Property constants for every term in the ontology.
+jena_schemagen(
+    name = "fixture_vocab",
+    classname = "Spec",
+    dataset = ":fixture_ttl",
+    namespace = "https://example.org/spec#",
+    package = "example.schemagen",
+)
+
+# Compile-time + runtime check: the generated Spec class is on the
+# classpath; its constants have the IRIs we declared. Compile alone
+# would catch the "no class generated" failure; the main() catches
+# wrong-URI bugs.
+java_test(
+    name = "vocab_test",
+    srcs = ["UseGeneratedVocabTest.java"],
+    main_class = "example.schemagen.UseGeneratedVocabTest",
+    use_testrunner = False,
+    deps = [
+        ":fixture_vocab",
+        # Strict-deps: the test references Resource + Property directly.
+        # `fixture_vocab` re-exports them transitively but the compiler
+        # wants them on this target's deps list explicitly.
+        "@jena_maven//:org_apache_jena_jena_core",
+    ],
+)

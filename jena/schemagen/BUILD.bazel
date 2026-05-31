@@ -1,0 +1,23 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("//jena:defs.bzl", "JENA_DEPS")
+
+# Apache Jena's built-in `jena.schemagen` tool wrapped as a `java_binary` so
+# Bazel can invoke it via `ctx.actions.run` (see //jena:schemagen.bzl). The
+# tool reads an RDF/RDFS/OWL ontology and emits a Java class with constants
+# (Resource for classes, Property for properties) for every URI it finds —
+# Jena's standard way to give Java code typo-proof vocabulary handles.
+#
+# Main-class is `jena.schemagen` because the upstream tool predates the
+# `org.apache.jena.*` package split and stays in the legacy `jena` package
+# for backwards compatibility (verified in jena-core 5.2.0).
+java_binary(
+    name = "jena_schemagen",
+    main_class = "jena.schemagen",
+    visibility = ["//visibility:public"],
+    runtime_deps = JENA_DEPS + [
+        # `jena.schemagen` lives in jena-cmds (not jena-arq/core), so it's
+        # not in the base JENA_DEPS list. Explicit here so the tool finds
+        # its main class.
+        "@jena_maven//:org_apache_jena_jena_cmds",
+    ],
+)

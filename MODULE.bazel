@@ -30,6 +30,7 @@ maven.install(
         "org.apache.jena:jena-core:5.2.0",
         "org.apache.jena:jena-base:5.2.0",
         "org.apache.jena:jena-iri:5.2.0",
+        "org.apache.jena:jena-cmds:5.2.0",
         "org.apache.jena:jena-shacl:5.2.0",
         "org.slf4j:slf4j-simple:2.0.16",
     ],

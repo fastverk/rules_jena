@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_rdf//rdf:contract_test.bzl", "rdf_plugin_contract_test")
 load(
     "@rules_rdf//rdf:toolchains.bzl",
@@ -9,6 +10,27 @@ load(
 )
 
 package(default_visibility = ["//visibility:public"])
+
+# Public re-export of the Jena classpath. Consumers who can't see
+# `@jena_maven//...` directly (its repo is private to rules_jena's
+# module — Bazel module isolation) depend on `:jena_runtime` instead.
+#
+# Used by `jena_schemagen`-generated `java_library` targets: the
+# emitted vocabulary class references Jena's `Resource` / `Property`
+# / `ResourceFactory`, so the wrapping library needs Jena on its
+# compile classpath. Without this indirection, every downstream
+# consumer would need to redeclare `jena_maven` in their own
+# MODULE.bazel — defeating the point of a reusable rule.
+java_library(
+    name = "jena_runtime",
+    exports = [
+        "@jena_maven//:org_apache_jena_jena_arq",
+        "@jena_maven//:org_apache_jena_jena_base",
+        "@jena_maven//:org_apache_jena_jena_core",
+        "@jena_maven//:org_apache_jena_jena_iri",
+        "@jena_maven//:org_slf4j_slf4j_simple",
+    ],
+)
 
 # Stardoc / bzl_library plumbing for the public Starlark surface.
 bzl_library(

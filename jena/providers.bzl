@@ -64,3 +64,16 @@ JenaReasonerInfo = provider(
                     "`custom` profile.",
     },
 )
+
+JenaSchemagenInfo = provider(
+    doc = "A Java vocabulary class generated from an RDF/OWL ontology " +
+          "by `jena.schemagen`. Carries the generated source file plus " +
+          "the package + classname so downstream codegen-of-codegen " +
+          "rules can name-import without re-deriving them.",
+    fields = {
+        "java_src": "File: the generated `<classname>.java`.",
+        "package": "str: Java package (e.g. `dev.fastverk.agora.vocab`).",
+        "classname": "str: simple class name (e.g. `Schema`, `Prov`).",
+        "namespace": "str: ontology namespace IRI the class enumerates.",
+    },
+)

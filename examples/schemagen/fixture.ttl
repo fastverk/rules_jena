@@ -1,0 +1,29 @@
+@prefix ex:   <https://example.org/spec#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+
+# Minimal fixture ontology — exercises schemagen across a class, a
+# datatype property, an object property, and an individual so the
+# generated Java has at least one constant of each shape.
+
+ex:Widget a owl:Class ;
+  rdfs:label "Widget" ;
+  rdfs:comment "A thing the test suite checks schemagen on." .
+
+ex:Gizmo a owl:Class ;
+  rdfs:subClassOf ex:Widget ;
+  rdfs:label "Gizmo" .
+
+ex:name a owl:DatatypeProperty ;
+  rdfs:domain ex:Widget ;
+  rdfs:range rdfs:Literal ;
+  rdfs:label "name" .
+
+ex:partOf a owl:ObjectProperty ;
+  rdfs:domain ex:Widget ;
+  rdfs:range ex:Widget ;
+  rdfs:label "partOf" .
+
+ex:exemplar a ex:Widget ;
+  ex:name "the canonical widget" .
