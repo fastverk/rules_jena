@@ -4,6 +4,32 @@ All notable changes to rules_jena. The format is loosely
 [Keep a Changelog](https://keepachangelog.com/) — version headers
 mirror the published bazel-registry entries.
 
+## 0.3.1 — `jena_schemagen` rule
+
+- New `jena_schemagen(name, dataset, package, classname, namespace, …)`
+  macro: generate a Java vocabulary class (Resource + Property
+  constants) from any `JenaModelInfo` or `RdfDatasetInfo` dataset
+  via Apache Jena's built-in `jena.schemagen` tool. Resolves the
+  "I need typo-proof `Schema.Person` / `Prov.Entity` constants from
+  RDF datasets" need that Jena has been able to satisfy since
+  forever but rules_jena didn't expose.
+- Companion `JenaSchemagenInfo` provider, public
+  `:jena_runtime` `java_library` re-exporting jena-arq / core /
+  base / iri / slf4j so consumers across module boundaries can
+  compile generated Java without redeclaring jena_maven.
+- MODULE.bazel adds `org.apache.jena:jena-cmds:5.2.0` (schemagen
+  lives in jena-cmds, not jena-arq / core).
+- end-to-end test under `examples/schemagen/`: a fixture ontology
+  generates a `Spec.java` whose constants are asserted by a
+  `java_test`.
+- Three real gotchas documented inline (verified against jena-cmds
+  5.2.0): `-e N3` not `--encoding TTL`, `-n` not `--classname`,
+  stdout capture (not `-o <path>` — schemagen treats not-yet-
+  existing paths as directories and writes `<path>/<classname>.java`
+  inside).
+
+## 0.3.0 — rules_rdf 0.3 dep bump
+
 ## 0.2.1 — binary RDF formats + rules_rdf 0.2 dep bump
 
 - All four Jena toolchain binaries (`jena_sparql`, `jena_shacl`,

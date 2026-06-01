@@ -3,7 +3,7 @@
 # reasoner. Java tools built via rules_java + Maven.
 module(
     name = "rules_jena",
-    version = "0.3.0",
+    version = "0.3.1",
 )
 
 bazel_dep(name = "platforms", version = "1.0.0")
