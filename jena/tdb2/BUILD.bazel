@@ -1,0 +1,20 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("//jena:defs.bzl", "JENA_TDB2_DEPS")
+
+package(default_visibility = ["//visibility:public"])
+
+# Persistent TDB2 loader/query binary. Loads RDF into and queries an
+# on-disk TDB2 dataset — the substrate for the agentic-ide runtime
+# knowledge-graph cache (~/.cache/agentic-ide/<repo-hash>/tdb2). Shares
+# result serialization with jena_sparql via //jena/sparql:result_emit
+# so a query run against the cache is byte-identical to the same query
+# run in-memory at build time.
+#
+# Not a rules_rdf toolchain — TDB2 is a runtime concern invoked directly
+# by the agentic-ide CLI, not a build-time plugin.
+java_binary(
+    name = "jena_tdb2",
+    srcs = ["JenaTdb2.java"],
+    main_class = "fastverk.rules_jena.tdb2.JenaTdb2",
+    deps = JENA_TDB2_DEPS + ["//jena/sparql:result_emit"],
+)

@@ -1,25 +1,18 @@
 package fastverk.rules_jena.sparql;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RiotException;
 
 /**
@@ -70,11 +63,6 @@ public final class JenaSparql {
             Map.entry("rdfxml", Lang.RDFXML),
             Map.entry("rdfthrift", Lang.RDFTHRIFT),
             Map.entry("rdfprotobuf", Lang.RDFPROTO));
-
-    /** Output formats by argv value. Used for SELECT/ASK; CONSTRUCT
-     *  and DESCRIBE always emit Turtle. */
-    private static final Set<String> OUT_FORMATS = Set.of(
-            "tsv", "csv", "json", "srx", "turtle");
 
     public static void main(String[] argv) {
         try {
@@ -140,7 +128,7 @@ public final class JenaSparql {
         }
         if (seenFlags.containsKey("--out-format")) {
             String v = seenFlags.get("--out-format");
-            if (!OUT_FORMATS.contains(v)) {
+            if (!ResultEmit.OUT_FORMATS.contains(v)) {
                 throw new UsageError("unsupported --out-format: " + v);
             }
             args.outFormat = v;
@@ -179,113 +167,13 @@ public final class JenaSparql {
 
     // ---------- execution + output ---------------------------------------
 
+    // Execution + result serialization is shared with the TDB2-backed
+    // jena_tdb2 binary via ResultEmit, so both emit byte-identical
+    // output (build-time hermetic queries must agree with the runtime
+    // cached query path).
     static int executeQuery(Model model, Query query, Args args) {
-        if (query.isSelectType()) {
-            return executeSelect(model, query, args);
-        }
-        if (query.isAskType()) {
-            return executeAsk(model, query, args);
-        }
-        if (query.isConstructType()) {
-            return executeConstruct(model, query, args);
-        }
-        if (query.isDescribeType()) {
-            return executeDescribe(model, query);
-        }
-        err("unsupported SPARQL query type for " + args.ruleName);
-        return 1;
-    }
-
-    static int executeSelect(Model model, Query query, Args args) {
-        // Materialize the result set so we can both emit it AND count
-        // it (the fail-on-nonempty path needs the count). Jena's
-        // ResultSetFormatter consumes the iterator destructively, so
-        // we rewind via ResultSetFactory after counting.
-        try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
-            ResultSet rs = qexec.execSelect();
-            // Snapshot to count without consuming the underlying iterator twice.
-            ResultSet snapshot = org.apache.jena.query.ResultSetFactory.copyResults(rs);
-            int rowCount = countRows(snapshot);
-            // Reset snapshot for emission.
-            snapshot = org.apache.jena.query.ResultSetFactory.copyResults(snapshot);
-            emitSelectResults(snapshot, args.outFormat);
-            if (args.failOnNonempty && rowCount > 0) {
-                err(rowCount + " row(s) violated --fail-on-nonempty gate");
-                return 1;
-            }
-            return 0;
-        }
-    }
-
-    static int countRows(ResultSet rs) {
-        int n = 0;
-        while (rs.hasNext()) {
-            rs.next();
-            n++;
-        }
-        return n;
-    }
-
-    static void emitSelectResults(ResultSet rs, String outFormat) {
-        PrintStream out = System.out;
-        switch (outFormat) {
-            case "tsv":
-                ResultSetFormatter.outputAsTSV(out, rs);
-                break;
-            case "csv":
-                ResultSetFormatter.outputAsCSV(out, rs);
-                break;
-            case "json":
-                ResultSetFormatter.outputAsJSON(out, rs);
-                break;
-            case "srx":
-                ResultSetFormatter.outputAsXML(out, rs);
-                break;
-            case "turtle":
-                // Turtle output for a SELECT is non-standard. Jena
-                // emits it via outputAsRDF; we go with the JSON
-                // fallback to keep the contract honest — Turtle is
-                // only meaningful for CONSTRUCT/DESCRIBE.
-                ResultSetFormatter.outputAsJSON(out, rs);
-                break;
-            default:
-                throw new IllegalStateException("unhandled out-format: " + outFormat);
-        }
-        out.flush();
-    }
-
-    static int executeAsk(Model model, Query query, Args args) {
-        try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
-            boolean result = qexec.execAsk();
-            // For ASK, an empty result is `false` and a non-empty result is `true`.
-            // --fail-on-nonempty maps naturally: fail iff the ASK returned true.
-            System.out.println(result);
-            if (args.failOnNonempty && result) {
-                err("ASK query returned true — gate failed");
-                return 1;
-            }
-            return 0;
-        }
-    }
-
-    static int executeConstruct(Model model, Query query, Args args) {
-        try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
-            Model resultModel = qexec.execConstruct();
-            RDFDataMgr.write(System.out, resultModel, RDFFormat.TURTLE_PRETTY);
-            if (args.failOnNonempty && !resultModel.isEmpty()) {
-                err(resultModel.size() + " triple(s) violated --fail-on-nonempty gate");
-                return 1;
-            }
-            return 0;
-        }
-    }
-
-    static int executeDescribe(Model model, Query query) {
-        try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
-            Model resultModel = qexec.execDescribe();
-            RDFDataMgr.write(System.out, resultModel, RDFFormat.TURTLE_PRETTY);
-            return 0;
-        }
+        return ResultEmit.executeAndEmit(
+                model, query, args.outFormat, args.failOnNonempty, System.out, System.err);
     }
 
     // ---------- error plumbing -------------------------------------------

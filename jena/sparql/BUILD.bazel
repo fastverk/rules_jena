@@ -1,7 +1,18 @@
-load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 load("//jena:defs.bzl", "JENA_DEPS")
 
 package(default_visibility = ["//visibility:public"])
+
+# Shared SPARQL execution + result serialization. Used by both the
+# in-memory `jena_sparql` binary (build-time hermetic queries via the
+# rules_rdf sparql_engine toolchain) and the persistent TDB2-backed
+# `jena_tdb2` binary (runtime KG cache). Keeping the formatter calls in
+# one library guarantees the two paths emit byte-identical results.
+java_library(
+    name = "result_emit",
+    srcs = ["ResultEmit.java"],
+    deps = JENA_DEPS,
+)
 
 # Concrete implementation of rules_rdf's sparql_engine toolchain
 # contract. Consumers register it via a `sparql_engine_toolchain` +
@@ -14,5 +25,5 @@ java_binary(
     name = "jena_sparql",
     srcs = ["JenaSparql.java"],
     main_class = "fastverk.rules_jena.sparql.JenaSparql",
-    deps = JENA_DEPS,
+    deps = JENA_DEPS + [":result_emit"],
 )

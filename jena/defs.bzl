@@ -56,6 +56,17 @@ JENA_DEPS = [
     "@jena_maven//:org_slf4j_slf4j_simple",
 ]
 
+# JENA_DEPS plus the TDB2 persistent triple-store stack. `jena-tdb2`
+# pulls its `jena-dboe-*` (base/index/storage/trans-data/transaction)
+# dependencies transitively, so listing it is enough. Used by the
+# `jena_tdb2` binary that loads/queries the on-disk TDB2 dataset backing
+# the agentic-ide runtime KG cache (~/.cache/agentic-ide/<hash>/tdb2).
+# All of these are already resolved in maven_install.json (transitively
+# via jena-cmds), so referencing them needs no re-pin.
+JENA_TDB2_DEPS = JENA_DEPS + [
+    "@jena_maven//:org_apache_jena_jena_tdb2",
+]
+
 # Re-exported rules.
 jena_model = _jena_model
 jena_dataset = _jena_dataset
