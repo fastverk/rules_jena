@@ -133,7 +133,7 @@ hand-rolled `JENA_DEPS` lists from downstream consumers.
 `.bazelrc`:
 
 ```
-common --registry=https://raw.githubusercontent.com/fastverk/bazel-registry/main/
+common --registry=https://registry.fastverk.com/
 common --registry=https://bcr.bazel.build/
 ```
 
